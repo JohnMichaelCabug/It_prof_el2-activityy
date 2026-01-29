@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yahoo! - Reimagined</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Blur Overlay */
+        .blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .blur-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .top-header {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: z-index 0.3s ease;
+        }
+
+        .top-header.search-focused {
+            z-index: 1001;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #6001d2;
+            letter-spacing: -1px;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 600px;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .search-container.focused {
+            transform: scale(1.05);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 50px 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6001d2;
+            box-shadow: 0 0 0 3px rgba(96, 1, 210, 0.1), 0 8px 24px rgba(96, 1, 210, 0.2);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .top-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .top-nav a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .top-nav a:hover {
+            color: #6001d2;
+        }
+
+        .more-dropdown {
+            position: relative;
+        }
+
+        .more-btn {
+            background: none;
+            border: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .more-btn:hover {
+            color: #6001d2;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-top: 10px;
+            min-width: 900px;
+            z-index: 1000;
+        }
+
+        .more-dropdown.active .dropdown-menu {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 30px;
+        }
+
+        .dropdown-section {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .dropdown-section h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+
+        @keyframes cursorRainbow {
+            0% { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="red"/></svg>'), auto; }
+            16% { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="orange"/></svg>'), auto; }
+            33% { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="yellow"/></svg>'), auto; }
+            50% { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="green"/></svg>'), auto; }
+            66% { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="blue"/></svg>'), auto; }
+            83% { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="indigo"/></svg>'), auto; }
+            100% { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="violet"/></svg>'), auto; }
+        }
+
+        body {
+            animation: cursorRainbow 7s infinite;
+        }
+
+        .dark-mode-toggle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        body.dark-mode {
+            background: #1a1a2e;
+            color: #eee;
+        }
+
+        body.dark-mode .top-header {
+            background: #16213e;
+        }
+
+        body.dark-mode .logo {
+            color: #a78bfa;
+        }
+
+        body.dark-mode .search-input {
+            background: #0f3460;
+            border-color: #533483;
+            color: white;
+        }
+
+        body.dark-mode .top-nav a,
+        body.dark-mode .more-btn {
+            color: #ccc;
+        }
+
+        body.dark-mode .top-nav a:hover,
+        body.dark-mode .more-btn:hover {
+            color: #a78bfa;
+        }
+
+        body.dark-mode .dropdown-menu {
+            background: #16213e;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode .dropdown-menu a {
+            color: #ccc;
+        }
+
+        body.dark-mode .dropdown-menu a:hover {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            color: #a78bfa;
+        }
+
+        body.dark-mode .hero-card,
+        body.dark-mode .story-card,
+        body.dark-mode .featured-story,
+        body.dark-mode .trending-card,
+        body.dark-mode .sports-section {
+            background: #16213e;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .hero-text {
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+        }
+
+        body.dark-mode .hero-text h1,
+        body.dark-mode .story-content h3,
+        body.dark-mode .featured-story h2,
+        body.dark-mode .trending-card h3,
+        body.dark-mode .sports-section h2,
+        body.dark-mode .team-name {
+            color: #eee;
+        }
+
+        body.dark-mode .hero-text p,
+        body.dark-mode .team-record {
+            color: #aaa;
+        }
+
+        body.dark-mode .game-card {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+        }
+
+        .news-updates {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-top: 30px;
+        }
+
+        .news-updates h2 {
+            font-size: 20px;
+            color: #222;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .news-updates h2::before {
+            content: '⚡';
+            font-size: 24px;
+        }
+
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .news-item {
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.05);
+            border-left: 3px solid #6001d2;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .news-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(5px);
+        }
+
+        .news-item h4 {
+            font-size: 15px;
+            color: #222;
+            margin-bottom: 5px;
+        }
+
+        .news-item p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .news-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        body.dark-mode .news-updates {
+            background: #16213e;
+        }
+
+        body.dark-mode .news-updates h2 {
+            color: #eee;
+        }
+
+        body.dark-mode .news-item {
+            background: rgba(167, 139, 250, 0.1);
+            border-left-color: #a78bfa;
+        }
+
+        body.dark-mode .news-item:hover {
+            background: rgba(167, 139, 250, 0.2);
+        }
+
+        body.dark-mode .news-item h4 {
+            color: #eee;
+        }
+
+        body.dark-mode .news-item p {
+            color: #aaa;
+        }
+
+        /* Enhanced 3D Footer */
+        footer {
+            background: linear-gradient(135deg, #6001d2 0%, #764ba2 100%);
+            padding: 60px 30px 30px;
+            margin-top: 50px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 -10px 40px rgba(96, 1, 210, 0.3);
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, 
+                #ff0080 0%, 
+                #ff8c00 20%, 
+                #40e0d0 40%, 
+                #6001d2 60%, 
+                #ff0080 80%, 
+                #ff8c00 100%);
+            background-size: 200% 100%;
+            animation: rainbowShift 3s linear infinite;
+        }
+
+        @keyframes rainbowShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        footer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 2px rgba(255, 255, 255, 0.3);
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .social-icon::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+            transform: translateZ(-1px);
+        }
+
+        .social-icon:hover {
+            transform: translateY(-8px) scale(1.1) rotateX(10deg);
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                0 0 20px rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .social-icon:hover::before {
+            opacity: 1;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: white;
+            transition: width 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            transform: translateY(-2px);
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-links a:hover::after {
+            width: 100%;
+        }
+
+        .copyright {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark-mode footer {
+            background: linear-gradient(135deg, #4c1d95 0%, #581c87 100%);
+        }
+
+        body.dark-mode .score {
+            color: #eee;
+        }
+
+        body.dark-mode .trending-item {
+            border-bottom-color: #0f3460;
+            color: #ccc;
+        }
+
+        .dropdown-menu a {
+            text-decoration: none;
+            color: #444;
+            padding: 6px 0;
+            transition: all 0.2s ease;
+            display: block;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .dropdown-menu a:hover {
+            color: #6001d2;
+            padding-left: 8px;
+        }
+
+        body.dark-mode .dropdown-menu {
+            background: rgba(22, 33, 62, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode .dropdown-section h4 {
+            color: #eee;
+        }
+
+        body.dark-mode .dropdown-menu a {
+            color: #ccc;
+        }
+
+        body.dark-mode .dropdown-menu a:hover {
+            color: #a78bfa;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-mail {
+            background: #6001d2;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-mail:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(96, 1, 210, 0.3);
+        }
+
+        .btn-signin {
+            border: 2px solid #6001d2;
+            color: #6001d2;
+            background: white;
+        }
+
+        .btn-signin:hover {
+            background: #6001d2;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .hero-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            transition: all 0.3s ease;
+        }
+
+        .hero-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transform: translateY(-4px);
+        }
+
+        .hero-image {
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .hero-card:hover .hero-image img {
+            transform: scale(1.05);
+        }
+
+        .hero-text {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .hero-text h1 {
+            font-size: 32px;
+            color: #222;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .hero-text p {
+            color: #555;
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .read-more {
+            color: #6001d2;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: gap 0.3s ease;
+        }
+
+        .read-more:hover {
+            gap: 10px;
+        }
+
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .story-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .story-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .story-image {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .story-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .story-card:hover .story-image img {
+            transform: scale(1.1);
+        }
+
+        .story-content {
+            padding: 15px;
+        }
+
+        .story-content h3 {
+            font-size: 15px;
+            color: #222;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .story-card:hover .story-content h3 {
+            color: #6001d2;
+        }
+
+        .featured-story {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .featured-story h2 {
+            font-size: 18px;
+            color: #222;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .featured-story h2::before {
+            content: '📰';
+            font-size: 20px;
+        }
+
+        .sports-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .sports-section h2 {
+            font-size: 20px;
+            color: #222;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sports-section h2::before {
+            content: '🏀';
+            font-size: 24px;
+        }
+
+        .scoreboard {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        body.dark-mode .game-card {
+            background: rgba(15, 52, 96, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .game-card:hover {
+            background: rgba(15, 52, 96, 0.7);
+        }
+
+        .team {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .team-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .team-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .team-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #222;
+        }
+
+        .team-record {
+            font-size: 13px;
+            color: #777;
+        }
+
+        .score {
+            font-size: 32px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        .game-status {
+            text-align: center;
+            color: #6001d2;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .trending-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .trending-card h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #222;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trending-card h3::before {
+            content: '🔥';
+            font-size: 22px;
+        }
+
+        .trending-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .trending-item:last-child {
+            border-bottom: none;
+        }
+
+        .trending-item:hover {
+            padding-left: 10px;
+            color: #6001d2;
+        }
+
+        .trending-number {
+            min-width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .weather-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .weather-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .weather-location {
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .weather-today {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .weather-temp {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .weather-icon {
+            font-size: 64px;
+        }
+
+        .weather-forecast {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .forecast-day {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .forecast-day:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .forecast-day-name {
+            font-size: 13px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .forecast-icon {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .forecast-temp {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .ad-card {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+        }
+
+        .ad-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .ad-content {
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .stories-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero-card {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-image {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stories-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-nav {
+                display: none;
+            }
+
+            .search-container {
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Blur Overlay -->
+    <div class="blur-overlay" id="blurOverlay"></div>
+
+    <header class="top-header" id="header">
+        <div class="header-content">
+            <div class="logo">yahoo!</div>
+            
+            <div class="search-container" id="searchContainer">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search the web">
+                <button class="search-btn">Search</button>
+            </div>
+
+            <nav class="top-nav">
+                <a href="#">📰 News</a>
+                <a href="#">📈 Finance</a>
+                <a href="#">⚽ Sports</a>
+                <div class="more-dropdown">
+                    <button class="more-btn">More ▾</button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-section">
+                            <h4>News</h4>
+                            <a href="#">Today's news</a>
+                            <a href="#">US</a>
+                            <a href="#">Politics</a>
+                            <a href="#">2025 Election</a>
+                            <a href="#">World</a>
+                            <a href="#">Weather</a>
+                            <a href="#">Climate change</a>
+                            <a href="#">Health</a>
+                            <a href="#">Science</a>
+                            <a href="#">Originals</a>
+                            <a href="#">Newsletters</a>
+                            <a href="#">Games</a>
+                        </div>
+                        
+                        <div class="dropdown-section">
+                            <h4>Life</h4>
+                            <a href="#">Health</a>
+                            <a href="#">Parenting</a>
+                            <a href="#">Horoscopes</a>
+                            <a href="#">Shopping</a>
+                            <a href="#">Food</a>
+                            <a href="#">Travel</a>
+                            <a href="#">Autos</a>
+                            <a href="#">Gift ideas</a>
+                            <a href="#">Buying guides</a>
+                        </div>
+                        
+                        <div class="dropdown-section">
+                            <h4>Entertainment</h4>
+                            <a href="#">Celebrity</a>
+                            <a href="#">TV</a>
+                            <a href="#">Movies</a>
+                            <a href="#">Music</a>
+                            <a href="#">How to Watch</a>
+                            <a href="#">Interviews</a>
+                            <a href="#">Videos</a>
+                        </div>
+                        
+                        <div class="dropdown-section">
+                            <h4>Finance</h4>
+                            <a href="#">My portfolio</a>
+                            <a href="#">Watchlists</a>
+                            <a href="#">Markets</a>
+                            <a href="#">News</a>
+                            <a href="#">Videos</a>
+                            <a href="#">Screeners</a>
+                            <a href="#">Personal finance</a>
+                            <a href="#">Crypto</a>
+                            <a href="#">Sectors</a>
+                        </div>
+                        
+                        <div class="dropdown-section">
+                            <h4>Sports</h4>
+                            <a href="#">Fantasy</a>
+                            <a href="#">NFL</a>
+                            <a href="#">NBA</a>
+                            <a href="#">MLB</a>
+                            <a href="#">NHL</a>
+                            <a href="#">College football</a>
+                            <a href="#">College basketball</a>
+                            <a href="#">Soccer</a>
+                            <a href="#">NFL Draft</a>
+                            <a href="#">Yahoo Sports AM</a>
+                        </div>
+                        
+                        <div class="dropdown-section">
+                            <h4>New on Yahoo</h4>
+                            <a href="#">Creators</a>
+                            <a href="#">Tech</a>
+                            <a href="#">Local services</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="user-actions">
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+                <button class="btn btn-mail">✉ Mail</button>
+                <button class="btn btn-signin">Sign in</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="hero-card">
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop" alt="Featured">
+                </div>
+                <div class="hero-text">
+                    <h1>Trump revokes Canada's peace board invite after Carney's speech draws praise</h1>
+                    <p>The withdrawal of Canada's invitation came hours after President Trump officially launched the board, which was initially meant to cement a Gaza ceasefire.</p>
+                    <a href="#" class="read-more">Read More →</a>
+                </div>
+            </div>
+
+            <div class="stories-grid">
+                <div class="story-card">
+                    <div class="story-image">
+                        <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&h=300&fit=crop" alt="Celebrity News">
+                    </div>
+                    <div class="story-content">
+                        <h3>After leaked texts, Jameela Jamil defends her right to criticize Blake Lively</h3>
+                    </div>
+                </div>
+
+                <div class="story-card">
+                    <div class="story-image">
+                        <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&h=300&fit=crop" alt="Home Tips">
+                    </div>
+                    <div class="story-content">
+                        <h3>6 things plumbers say you should always do before a freeze</h3>
+                    </div>
+                </div>
+
+                <div class="story-card">
+                    <div class="story-image">
+                        <img src="https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=400&h=300&fit=crop" alt="Sports">
+                    </div>
+                    <div class="story-content">
+                        <h3>Tense handshake overshadows Naomi Osaka's win at Australian Open</h3>
+                    </div>
+                </div>
+
+                <div class="story-card">
+                    <div class="story-image">
+                        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&h=300&fit=crop" alt="Health">
+                    </div>
+                    <div class="story-content">
+                        <h3>Study shows cancer deaths fell 44% among younger adults, but 1 type is rising</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="featured-story">
+                <h2>Stories for you</h2>
+                <div class="story-card">
+                    <div class="story-image">
+                        <img src="https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?w=400&h=300&fit=crop" alt="Lottery">
+                    </div>
+                    <div class="story-content">
+                        <h3>Powerball jackpot winner snags $209M. See where the ticket was sold.</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sports-section">
+                <h2>NBA Scores</h2>
+                <div class="scoreboard">
+                    <div class="game-card">
+                        <div class="team">
+                            <div class="team-logo">
+                                <img src="https://cdn.nba.com/logos/nba/1610612747/global/L/logo.svg" alt="Lakers">
+                            </div>
+                            <div class="team-info">
+                                <div class="team-name">LA Lakers</div>
+                                <div class="team-record">24-18</div>
+                            </div>
+                        </div>
+                        <div class="score">112</div>
+                        <div class="game-status">FINAL</div>
+                        <div class="score">108</div>
+                        <div class="team">
+                            <div class="team-info" style="text-align: right;">
+                                <div class="team-name">Boston Celtics</div>
+                                <div class="team-record">32-10</div>
+                            </div>
+                            <div class="team-logo">
+                                <img src="https://cdn.nba.com/logos/nba/1610612738/global/L/logo.svg" alt="Celtics">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-card">
+                        <div class="team">
+                            <div class="team-logo">
+                                <img src="https://cdn.nba.com/logos/nba/1610612744/global/L/logo.svg" alt="Warriors">
+                            </div>
+                            <div class="team-info">
+                                <div class="team-name">Golden State</div>
+                                <div class="team-record">21-21</div>
+                            </div>
+                        </div>
+                        <div class="score">98</div>
+                        <div class="game-status">FINAL</div>
+                        <div class="score">105</div>
+                        <div class="team">
+                            <div class="team-info" style="text-align: right;">
+                                <div class="team-name">Phoenix Suns</div>
+                                <div class="team-record">20-22</div>
+                            </div>
+                            <div class="team-logo">
+                                <img src="https://cdn.nba.com/logos/nba/1610612756/global/L/logo.svg" alt="Suns">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-card">
+                        <div class="team">
+                            <div class="team-logo">
+                                <img src="https://cdn.nba.com/logos/nba/1610612749/global/L/logo.svg" alt="Bucks">
+                            </div>
+                            <div class="team-info">
+                                <div class="team-name">Milwaukee</div>
+                                <div class="team-record">25-17</div>
+                            </div>
+                        </div>
+                        <div class="score">89</div>
+                        <div class="game-status">3rd Qtr</div>
+                        <div class="score">92</div>
+                        <div class="team">
+                            <div class="team-info" style="text-align: right;">
+                                <div class="team-name">Miami Heat</div>
+                                <div class="team-record">19-23</div>
+                            </div>
+                            <div class="team-logo">
+                                <img src="https://cdn.nba.com/logos/nba/1610612748/global/L/logo.svg" alt="Heat">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-updates">
+                <h2>Latest Updates</h2>
+                <div class="news-list">
+                    <div class="news-item">
+                        <h4>Breaking: Major tech company announces AI breakthrough</h4>
+                        <p>Revolutionary development in artificial intelligence could reshape the industry</p>
+                        <div class="news-time">2 hours ago</div>
+                    </div>
+                    <div class="news-item">
+                        <h4>Stock markets reach new highs amid positive economic data</h4>
+                        <p>Investors celebrate as major indices continue upward trend</p>
+                        <div class="news-time">4 hours ago</div>
+                    </div>
+                    <div class="news-item">
+                        <h4>Climate summit concludes with historic agreements</h4>
+                        <p>World leaders commit to ambitious carbon reduction targets</p>
+                        <div class="news-time">6 hours ago</div>
+                    </div>
+                    <div class="news-item">
+                        <h4>New study reveals benefits of Mediterranean diet</h4>
+                        <p>Research shows significant health improvements in long-term study</p>
+                        <div class="news-time">8 hours ago</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="trending-card">
+                <h3>Trending Now</h3>
+                <div class="trending-item">
+                    <span class="trending-number">1</span>
+                    <span>Winter Storms</span>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">2</span>
+                    <span>Oscar Nominations</span>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">3</span>
+                    <span>Russia-Ukraine War</span>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">4</span>
+                    <span>Jesse Minter</span>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">5</span>
+                    <span>Donald Trump</span>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">6</span>
+                    <span>Alex Honnold</span>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">7</span>
+                    <span>Barron Trump</span>
+                </div>
+                <div class="trending-item">
+                    <span class="trending-number">8</span>
+                    <span>Microsoft Outage</span>
+                </div>
+            </div>
+
+            <div class="weather-card">
+                <div class="weather-header">
+                    <h3>Weather</h3>
+                    <div class="weather-location">📍 Quezon City</div>
+                </div>
+                <div class="weather-today">
+                    <div class="weather-temp">28°C</div>
+                    <div class="weather-icon">☀️</div>
+                </div>
+                <div class="weather-forecast">
+                    <div class="forecast-day">
+                        <div class="forecast-day-name">Today</div>
+                        <div class="forecast-icon">☀️</div>
+                        <div class="forecast-temp">28°</div>
+                    </div>
+                    <div class="forecast-day">
+                        <div class="forecast-day-name">Sat</div>
+                        <div class="forecast-icon">🌤️</div>
+                        <div class="forecast-temp">27°</div>
+                    </div>
+                    <div class="forecast-day">
+                        <div class="forecast-day-name">Sun</div>
+                        <div class="forecast-icon">⛅</div>
+                        <div class="forecast-temp">26°</div>
+                    </div>
+                    <div class="forecast-day">
+                        <div class="forecast-day-name">Mon</div>
+                        <div class="forecast-icon">🌧️</div>
+                        <div class="forecast-temp">25°</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ad-card">
+                <h3>verizon</h3>
+                <div class="ad-content">
+                    <p><strong>$100 off select smartphones.</strong></p>
+                    <p>Plus save with V2NV6AL for additional discount.</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon">𝕏</a>
+                <a href="#" class="social-icon">f</a>
+                <a href="#" class="social-icon">📷</a>
+                <a href="#" class="social-icon">▶</a>
+                <a href="#" class="social-icon">♪</a>
+            </div>
+            <div class="footer-links">
+                <a href="#">Terms and Privacy Policy</a>
+                <a href="#">Privacy Dashboard</a>
+                <a href="#">Advertise</a>
+                <a href="#">About Our Ads</a>
+                <a href="#">Careers</a>
+                <a href="#">Help</a>
+                <a href="#">Feedback</a>
+            </div>
+            <div class="copyright">
+                © 2026 Yahoo. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchContainer = document.getElementById('searchContainer');
+        const blurOverlay = document.getElementById('blurOverlay');
+        const header = document.getElementById('header');
+
+        // Search bar focus effect
+        searchInput.addEventListener('focus', function() {
+            blurOverlay.classList.add('active');
+            searchContainer.classList.add('focused');
+            header.classList.add('search-focused');
+        });
+
+        searchInput.addEventListener('blur', function() {
+            blurOverlay.classList.remove('active');
+            searchContainer.classList.remove('focused');
+            header.classList.remove('search-focused');
+        });
+
+        // Click on blur overlay to close search
+        blurOverlay.addEventListener('click', function() {
+            searchInput.blur();
+        });
+
+        // Toggle More dropdown
+        document.querySelector('.more-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.querySelector('.more-dropdown').classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.more-dropdown')) {
+                document.querySelector('.more-dropdown').classList.remove('active');
+            }
+        });
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            const btn = document.querySelector('.dark-mode-toggle');
+            btn.innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDark);
+        }
+
+        // Load dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.dark-mode-toggle').innerHTML = '☀️ Light Mode';
+        }
+    </script>
+</body>
+</html>
